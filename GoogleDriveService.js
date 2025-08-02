@@ -1508,7 +1508,7 @@ console.log(isFileView);
                         responseType: "blob"
                     }).success(function (data, status, headers, config) {
                         if (data !== undefined) {
-                            if (resp.fileExtension.indexOf(".$enc") > -1) {
+                            if (fName.indexOf(".$enc") > -1) {
                                 var cFName = fName.replace(".$enc", "");
                                 utilsService
                                     .decryptFileObject(data, authService.activeSession.encr_key, fExt)

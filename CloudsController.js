@@ -52,6 +52,11 @@
         $scope.toShareEmailArrayString = "";
         $scope.isRTEmail = false;
         $scope.isPaintEmail = false;
+        // Multiple file sharing variables
+        $scope.multipleFileUrls = [];
+        $scope.multipleShareFileNames = [];
+        $scope.multipleShareProcessedCount = 0;
+        $scope.multipleShareTotalCount = 0;
         $scope.isCloudSessionActive = false;
         $scope.recordingStatus = 0;
         $scope.requestedFileDirId = '';
@@ -192,6 +197,13 @@
             console.log("onshareviaemail", $scope.toShareEmailArrayString);
             $(".multiple-val-input ul").remove();
             $("#shareViaEmail").modal("hide");
+            
+            // Check if sharing multiple files
+            if ($scope.multipleFileUrls && $scope.multipleFileUrls.length > 1) {
+                console.log("Sharing multiple files via email:", $scope.multipleFileUrls.length, "files");
+                $scope.sendEmailToAll(); // No URL parameter needed for multiple files
+                return;
+            }
             if($scope.isShareDecrypted && $scope.sharedFileName.indexOf('.$enc') > -1){
                 $scope.isLoad = true;
                 $scope.$evalAsync();
@@ -302,9 +314,24 @@
         };
 
         $scope.sendEmailToAll =  function (urlToShare) {
-            var subject = $scope.sharedFileName + " shared via VEEKRYPT";
-			console.log("end to all email", $scope.sharedFileName, urlToShare, $scope.curSelectedShareFile);
-            utilsService.sendEmails($scope.toShareEmailArrayString, subject, urlToShare, $scope.sharedFileName)
+            var subject, emailContent;
+            
+            // Check if sharing multiple files
+            if ($scope.multipleFileUrls && $scope.multipleFileUrls.length > 1) {
+                subject = $scope.multipleFileUrls.length + " files shared via VEEKRYPT";
+                // Create email content with all file links
+                emailContent = "Multiple files have been shared with you:\n\n";
+                $scope.multipleFileUrls.forEach(function(fileObj, index) {
+                    emailContent += (index + 1) + ". " + fileObj.name + "\n   " + fileObj.url + "\n\n";
+                });
+                console.log("Sending multiple files email", $scope.multipleFileUrls.length, "files");
+                utilsService.sendEmails($scope.toShareEmailArrayString, subject, emailContent, $scope.sharedFileName);
+            } else {
+                // Single file sharing (existing logic)
+                subject = $scope.sharedFileName + " shared via VEEKRYPT";
+                console.log("Sending single file email", $scope.sharedFileName, urlToShare, $scope.curSelectedShareFile);
+                utilsService.sendEmails($scope.toShareEmailArrayString, subject, urlToShare, $scope.sharedFileName);
+            }
 			.then(function(success) {
                 console.log("Email : ", success.data);
                 swal("Thanks!", "An email has been successfully sent!", "success");
@@ -2267,6 +2294,14 @@ console.log('isFileView------->', isFileView)
          *  @Result : Share file to given email or generate share URL
          */
         $scope.shareFile = function(fileId, fileName){
+            // Check if multiple files are selected
+            if ($scope.isSelected == false && $scope.selectedArray && $scope.selectedArray.length > 0) {
+                // Handle multiple file sharing
+                $scope.shareMultipleFiles();
+                return;
+            }
+            
+            // Handle single file sharing (existing logic)
             $scope.sharedFileName = fileName;
             $scope.curSelectedFileId = fileId;
             $scope.isLoad = true;
@@ -2434,6 +2469,123 @@ console.log('isFileView------->', isFileView)
                 },5000);
             }
 
+        };
+
+        /*
+         * Share Multiple Files via Email
+         * Handles sharing of multiple selected files
+         */
+        $scope.shareMultipleFiles = function() {
+            if (!$scope.selectedArray || $scope.selectedArray.length === 0) {
+                $rootScope.$broadcast('showErrorAlert', {data: 'No files selected for sharing'});
+                return;
+            }
+
+            // Initialize variables for multiple file sharing
+            $scope.multipleShareUrls = [];
+            $scope.multipleShareFileNames = [];
+            $scope.multipleShareProcessedCount = 0;
+            $scope.multipleShareTotalCount = $scope.selectedArray.length;
+            
+            $scope.isLoad = true;
+            $scope.$evalAsync();
+
+            console.log('Starting multiple file sharing for', $scope.multipleShareTotalCount, 'files');
+
+            // Process each selected file
+            $scope.selectedArray.forEach(function(file, index) {
+                var fileId = file.id || file.path_lower;
+                var fileName = file.title || file.name;
+                
+                console.log('Processing file', index + 1, 'of', $scope.multipleShareTotalCount, ':', fileName);
+                
+                // Generate share URL for each file based on cloud provider
+                if ($scope.selectedCloud == CLOUDS.DROP_BOX) {
+                    dropboxService.shareFile(dropboxToken, fileId).then(function(success) {
+                        $scope.multipleShareUrls.push({
+                            name: fileName,
+                            url: success.data.url
+                        });
+                        $scope.multipleShareFileNames.push(fileName);
+                        $scope.checkMultipleShareCompletion();
+                    }, function(error) {
+                        // Try getting existing shared link
+                        dropboxService.getSharedLink(dropboxToken, fileId).then(function(success) {
+                            if (success.data.links && success.data.links.length > 0) {
+                                $scope.multipleShareUrls.push({
+                                    name: fileName,
+                                    url: success.data.links[0].url
+                                });
+                                $scope.multipleShareFileNames.push(fileName);
+                            }
+                            $scope.checkMultipleShareCompletion();
+                        }, function(error) {
+                            console.error('Error sharing file:', fileName, error);
+                            $scope.checkMultipleShareCompletion();
+                        });
+                    });
+                } else if ($scope.selectedCloud == CLOUDS.GOOGLE_DRIVE) {
+                    // For Google Drive, generate direct share URL
+                    var shareUrl = "https://drive.google.com/file/d/" + fileId + "/view";
+                    $scope.multipleShareUrls.push({
+                        name: fileName,
+                        url: shareUrl
+                    });
+                    $scope.multipleShareFileNames.push(fileName);
+                    $scope.checkMultipleShareCompletion();
+                } else if ($scope.selectedCloud == CLOUDS.BOX_NET) {
+                    boxService.shareFile(boxDotNetToken, fileId).then(function(success) {
+                        $scope.multipleShareUrls.push({
+                            name: fileName,
+                            url: success.data.shared_link.url
+                        });
+                        $scope.multipleShareFileNames.push(fileName);
+                        $scope.checkMultipleShareCompletion();
+                    }, function(error) {
+                        console.error('Error sharing file:', fileName, error);
+                        $scope.checkMultipleShareCompletion();
+                    });
+                } else if ($scope.selectedCloud == CLOUDS.ONE_DRIVE) {
+                    oneDriveService.shareFile(oneDriveToken, fileId).then(function(success) {
+                        $scope.multipleShareUrls.push({
+                            name: fileName,
+                            url: success.data.link.webUrl
+                        });
+                        $scope.multipleShareFileNames.push(fileName);
+                        $scope.checkMultipleShareCompletion();
+                    }, function(error) {
+                        console.error('Error sharing file:', fileName, error);
+                        $scope.checkMultipleShareCompletion();
+                    });
+                }
+            });
+        };
+
+        /*
+         * Check if all multiple files have been processed for sharing
+         */
+        $scope.checkMultipleShareCompletion = function() {
+            $scope.multipleShareProcessedCount++;
+            console.log('Processed', $scope.multipleShareProcessedCount, 'of', $scope.multipleShareTotalCount, 'files');
+            
+            if ($scope.multipleShareProcessedCount >= $scope.multipleShareTotalCount) {
+                $scope.isLoad = false;
+                $scope.$evalAsync();
+                
+                if ($scope.multipleShareUrls.length === 0) {
+                    $rootScope.$broadcast('showErrorAlert', {data: 'Failed to share any files'});
+                    return;
+                }
+                
+                console.log('All files processed. Opening email dialog with', $scope.multipleShareUrls.length, 'file URLs');
+                
+                // Set up data for email sharing
+                $scope.sharedFileName = $scope.multipleShareFileNames.join(', ');
+                $scope.multipleFileUrls = $scope.multipleShareUrls;
+                
+                // Open email sharing dialog
+                $("#shareViaEmail").modal("show");
+            }
         };
 
         $scope.$on('onShareFiledDownloadedOnServer', function(event, data) {
