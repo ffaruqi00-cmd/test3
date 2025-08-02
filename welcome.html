@@ -1,0 +1,1676 @@
+<html>
+
+<head>
+    <title></title>
+    
+    <!-- Google API Client Library -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://apis.google.com/js/client.js"></script>
+    
+    <style>
+        .loading-container-f {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            /* Optional: white overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            /* Make sure it's above other content */
+        }
+
+        .loading-spinner-f {
+            width: 200px;
+            height: 200px;
+            background: url('images/loader-alt.gif') no-repeat center center;
+            background-size: contain;
+        }
+
+        .header-menu-btn:hover {
+            color: white;
+        }
+
+        .logo {
+            height: auto !important;
+            padding-top: 17px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hold-transition skin-blue sidebar-mini">
+        <div class="wrapper"><!-- Main Header -->
+            <header class="main-header">
+                <div class=" navbar navbar-default " role="navigation">
+
+                    <!-- Logo -->
+                    <a class="logo" id="brand-logo" href="#">
+                        <!-- mini logo for sidebar mini 50x50 pixels -->
+                        <span class="logo-mini">
+                            <img src="images/50x50.jpg" />
+                        </span>
+                        <!-- logo for regular state and mobile devices -->
+                        <span class="logo-lg">
+                            <img src={{logoURL}} style="height: 53px;width: 180px;" />
+                        </span>
+                    </a>
+                    <!-- Header Navbar -->
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <div type="button" class="btn-group dropdown-btn-group header-menu-btn"
+                            style="background: #132b51;color: white; margin-right: 10px; border-radius: 10px;">
+                            <div ng-disabled="!isCloudSessionActive" id="btnGrop1" type="button"
+                                class="header-menu-btn dropdown-toggle" data-toggle="tooltip" data-placement="bottom"
+                                data-original-title="" title="" disabled="disabled">
+                                <img src="images/Upload-Button.png" style="border-radius: 10px;height: 40px;" />
+                            </div>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="btnGrop1">
+                                <li><a href="" ng-click="isUploadEncrypted=false" data-toggle="modal"
+                                        data-target="#uploadModalEncrypted" data-original-title="" title="">Upload
+                                        File</a></li>
+                                <li><a href="" ng-click="isUploadEncrypted=false" data-toggle="modal"
+                                        data-target="#uploadFolderModal" data-original-title="" title="">Upload
+                                        Folder</a></li>
+                            </ul>
+                        </div>
+
+                        <div type="button" class="btn-group header-menu-btn"
+                            style="background: #132b51;color: white; margin-right: 10px; border-radius: 10px;">
+                            <div class="header-menu-btn" ng-click="isUploadEncrypted=false" data-toggle="modal"
+                                data-target="#requestAFile" data-placement="bottom" title=" Request a file">
+                                <img src="images/File-request-Button.png" style="border-radius: 10px;height: 40px;" />
+                            </div>
+                        </div>
+
+                        <div type="button" class="btn-group dropdown-btn-group header-menu-btn"
+                            style="background: #132b51;color: white; margin-right: 10px; border-radius: 10px;">
+                            <div ng-disabled="!isCloudSessionActive" id="btnGrop3" type="button"
+                                class="dropdown-toggle header-menu-btn" data-toggle="tooltip" data-placement="bottom"
+                                data-original-title="" title="" disabled="disabled">
+                                <img src="images/Create-New-Button.png" style="border-radius: 10px;height: 40px;" />
+                            </div>
+                            <ul class="dropdown-menu button-grp-3" role="menu" aria-labelledby="btnGrop3">
+                                <li ng-show="selectedCloud == 'GoogleDrive'"><a href=""
+                                        ng-click="setNewDocumentStatus('Document File', 'docx')" data-original-title=""
+                                        title="">Create Document </a></li>
+
+                                <li ng-show="selectedCloud == 'GoogleDrive'"><a href=""
+                                        ng-click="setNewDocumentStatus('Spreadsheet File', 'xlsx')"
+                                        data-original-title="" title="">Create Sheet </a></li>
+
+                                <li ng-show="selectedCloud == 'GoogleDrive'"><a href=""
+                                        ng-click="setNewDocumentStatus('Slide File', 'pptx')" data-original-title=""
+                                        title="">Create Slides </a></li>
+
+                                <li><a href="" ng-click="callDrawingJS();" data-toggle="modal"
+                                        data-target="#drawingPanel" data-original-title="" title="">Create Drawing </a>
+                                </li>
+                                <li><a href="" ng-click="callAudioInit();" data-toggle="modal"
+                                        data-target="#AudiPanelMoel" data-original-title="" title="">Create Voice Memo
+                                    </a></li>
+                                <li><a href="" data-toggle="modal" data-target="#createFolderModel"
+                                        data-original-title="" title=""
+                                        ng-class="{'disabled':!isCloudSessionActive}">Create New Folder</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Sidebar toggle button-->
+
+                    <div class="pull-right" style="margin-right:0px;">
+
+                        <div class="btn-group" style="margin-right: 0px;">
+                            <a href="#" id="Primarybtn" class="sidebar-toggle" data-toggle="offcanvas" role="button"
+                                data-toggle="tooltip" title="Show or Hide Sidebar" data-placement="bottom"
+                                style="margin-right: 0px;"></a>
+                            <!-- <button type="button" id="Primarybtn" class="btn btn-primary"   ng-click="goBackDir();" data-toggle="tooltip" data-placement="bottom" title=" Back " style="margin-left: -15px;">  <span><strong><img height="20px"  src="images/back.png" style =width="20px" /></strong></span> </button> -->
+
+                            <!-- <button ng-class="{'disabled':!isCloudSessionActive}" type="button" id="Primarybtn" class="btn btn-primary"  ng-click="refreshDir();"  data-toggle="tooltip" data-placement="bottom" style="margin-right: 10px;pointer-events:auto;cursor:pointer;" title=" Refresh " style="margin-left: -20px;" ><span><strong><img height="20px"  src="images/refresh.png" style =width="20px" /></strong></span> </button> -->
+
+                            <!-- <a type="button" ng-class="{'disabled':!isCloudSessionActive}" id="Primarybtn" class="btn btn-primary"  data-toggle="modal" data-toggle="tooltip" data-placement="bottom " title="Create New Folder " style="margin-left:0px;pointer-events:auto;cursor:pointer;" ng-click="openCreateNewFolderModal()">
+							<span>
+								<strong>
+									<img height="20px"  src="images/addFolder1.png" style =width="20px" />
+								</strong>
+							</span>
+                        </a> -->
+                        </div>
+
+
+                        <!--<div class="btn-group" style="margin-right: 5px;">
+                        <a type="button" ng-disabled="!isCloudSessionActive" id="Primarybtn" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" data-placement="bottom" title=" Upload Files " style="width: 55px;" > <span><strong><img height="20px"  src="images/uploadFile.png" style =width="20px" /></strong></span>  <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            &lt;!&ndash;<li><a href="" data-toggle="modal" data-target="#createFolderModel" >New Folder</a></li>&ndash;&gt;
+                            &lt;!&ndash;<li><a href="" data-toggle="modal" data-target="#uploadModal" >New File</a></li>&ndash;&gt;
+                            <li><a href="" ng-click="isUploadEncrypted=false" data-toggle="modal" data-target="#uploadModalEncrypted" >Upload File</a></li>
+                            <li><a href="" ng-click="isUploadEncrypted=false" data-toggle="modal" data-target="#uploadFolderModal" >Upload Folder</a></li>
+                            &lt;!&ndash;<li><a href="" ng-click="resetRTEditor();" data-toggle="modal" data-target="#angularTrixModel" >Create RichText File</a></li>&ndash;&gt;
+                        </ul>
+                        <a type="button" ng-disabled="!isCloudSessionActive" id="Primarybtn" class="btn btn-primary"  data-toggle="modal" data-target="#createFolderModel" data-toggle="tooltip" data-placement="bottom " title="Create New Folder " style="margin-right: 35px;" ><span><strong><img height="20px"  src="images/addFolder1.png" style =width="20px" /></strong></span></a>
+                        <a type="button" id="Primarybtn" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"  data-toggle="tooltip" data-placement="bottom" title=" Create files " style="width: 55px;" > <span><strong><img height="20px"  src="images/addFolder1.png" style =width="20px" /></strong></span>  <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu" style="margin-right: 35px;">
+                            <li><a type="button" ng-click="resetRTEditor();" id="Primarybtn" class="btn btn-primary"  data-toggle="modal" data-target="#angularTrixModel" data-toggle="tooltip" data-placement="bottom " title="Create RichText File " ><span><strong><img height="20px"  src="images/addFolder1.png" width="20px;" /></strong></span></a></li>
+                            <li><a type="button" ng-click="" id="Primarybtn" class="btn btn-primary"  data-toggle="modal" data-target="#angularTrixModel" data-toggle="tooltip" data-placement="bottom " title="Create Drawing "  ><span><strong><img height="20px"  src="images/addFolder1.png" width="20px;" /></strong></span></a></li>
+                        </ul>
+
+                    </div>-->
+
+                        <div class="btn-group dropdown-btn-group">
+                            <a type="button" id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                data-toggle="tooltip" data-placement="right">Logout <span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="" ng-click="cloudLogout('DB');">Drop Box</a></li>
+                                <li><a href="" ng-click="cloudLogout('GD');">Google Drive</a></li>
+                                <li><a href="" ng-click="cloudLogout('BN');">Box</a></li>
+                                <li><a href="" ng-click="cloudLogout('OD');">One Drive</a></li>
+                                <li><a href="" ng-click="cloudLogout('CFONLY');">Veekrypt</a></li>
+                                <li><a href="" ng-click="cloudLogout('CF');">All</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="btn-group  dropdown-btn-group">
+                            <a type="button" id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                data-toggle="tooltip" data-placement="right"> Help <span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a target="_blank" href="" data-toggle="modal"
+                                        data-target="#modalWithCarousel">Quick Overview</a></li>
+                                <li><a target="_blank" href="https://vimeo.com/146204459" data-toggle="modal">Watch
+                                        Video</a></li>
+                                <li><a target="_blank" href="" data-target="#appStoreModel" data-toggle="modal"
+                                        style="position: relative;">App for iPhone and iPad</a></li>
+                                <li><a target="_blank" href="" data-target="#playStoreModel" data-toggle="modal">App for
+                                        Android Phones and Tablets</a></li>
+                                <li><a target="_blank" href="https://cloud-fish.com/cloudfish-corp-website/support.html"
+                                        data-toggle="modal">Customer Support</a></li>
+                            </ul>
+                        </div>
+                        <div class="btn-group dropdown-btn-group">
+                            <a type="button" id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                data-toggle="tooltip" data-placement="bottom"> {{cUsername}} <span
+                                    class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="" ng-click="settings();" data-toggle="modal">Settings</a></li>
+                                <li><a href="" ng-click="updatePassword();" data-toggle="modal">Change Password</a></li>
+                                <!--<li><a href="" ng-click="logout();" data-toggle="modal" >Logout</a></li>-->
+                                <li><a target="_blank" href="http://admin.mycloudfish.com/" data-toggle="modal">Admin
+                                        Panel</a></li>
+                            </ul>
+                        </div>
+                        <!-- <a href="app/pages/setting.html"> <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-cog"></span> Settings </button></a> -->
+                    </div>
+
+                </div>
+            </header>
+            <header>
+                <!--<div class="navbar navbar-default" role="navigation">-->
+                <div id="FileMenu" ng-show="isFileMenuVisible" style="margin-left: 230px;  ">
+                    <div id="FileMenu" ng-show=false style="margin-left: 230px;  ">
+                        <button type="button" class="btn btn-default" ng-click="onShowAllFiles();"
+                            style="margin-left: 15px; border: 0px;">
+                            <img src="images/all_files_normal.png" />
+                        </button>
+                        <button ng-show="selectedCloud !== 'Box'" type="button" class="btn btn-default"
+                            ng-click="onShowSharedWithMeFiles();" style="margin-left: 15px;  border: 0px;">
+                            <img src="images/shared_files_normal.png" />
+                        </button>
+                        <button type="button" class="btn btn-default" ng-click="onShowRequestedFiles();"
+                            style="margin-left: 15px;  border: 0px;">
+                            <img src="images/requested_files_normal.png" />
+                        </button>
+                        <button type="button" class="btn btn-default" ng-click="onShowTeamFolders();"
+                            style="margin-left: 15px;  border: 0px;">
+                            <img src="images/team_folder_normal.png" />
+                        </button>
+                    </div>
+                    <!--</div>-->
+            </header>
+            <!-- Left side column. contains the logo and sidebar -->
+
+            <aside class="main-sidebar"><!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar"><!-- Sidebar Menu -->
+                    <!-- <div style="height: 36px;position: absolute;margin-left: 229px;margin-top: 6px;">
+
+                </div> -->
+
+                    <!-- <div style="height: 819px;position: absolute;margin-left: 229px;margin-top: 7px;" >
+                </div> -->
+
+                    <ul class="sidebar-menu"><!-- Optionally, you can add icons to the links -->
+
+                        <li ng-show="isDBVisible"><a href="" ng-click="loginDB();" class="cloud-option"><img
+                                    id="dbTabBtn" height="50" src="images/dropbox.png" style="margin-top:0px;"
+                                    width="215" /></a></li>
+                        <li ng-show="isGDVisible"><a href="" ng-click="loginGD();" class="cloud-option"><img
+                                    id="gdTabBtn" height="50" src="images/googledrive.png" width="215" /></a></li>
+                        <li ng-show="isBNVisible"><a href="" ng-click="loginBN();" class="cloud-option"><img
+                                    id="bnTabBtn" height="50" src="images/box.png" width="215" /></a></li>
+                        <li ng-show="isODVisible"><a href="" ng-click="loginOD(); " class="cloud-option"><img
+                                    id="odTabBtn" height="50" src="images/OneDrive.png" width="215" /></a></li>
+                        <li ng-show="isMCDVisible"><a href="" ng-click="loadMyDoc(); " class="cloud-option"><img
+                                    id="mcdTabBtn" height="50" src="images/myDoc.png" width="215" /></a></li>
+                    </ul>
+                    <!-- /.sidebar-menu -->
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+            <!-- Content Wrapper. Contains page content -->
+
+            <div class="content-wrapper"><!-- Content Header (Page header) --><!-- <img src="images/loading.gif">-->
+                <!--<div ng-show="isLoad" style="background:url(images/loading.gif) no-repeat center center;width:100px;height:100px; margin-left:420px;">&nbsp;</div>-->
+                <div ng-if="isLoad" class="loading-container-f">
+                    <div class="loading-spinner-f"></div>
+                </div>
+                <div id="error_alert" style="background-color:#fff">&nbsp;</div>
+                <!-- style="border-left: 0px solid #d2d6de;margin-top: -10px;" -->
+                <section class="content" id="dropUploadZone">
+                    <center ng-show="!isCloudSessionActive" style="margin-top: 100px;"><label>Click on a tab to display
+                            files</label></center>
+                    <table ng-show="isCloudSessionActive" class="table table-hover" id="cloudContentTable">
+
+                        <thead>
+                            <tr>
+                                <th style="border-bottom: 0px; width: 6%;text-align:center;">
+                                    <input type="checkbox" ng-model="selectAll" ng-change="toggleSelectAll()" />
+                                </th>
+                                <th style="font-weight: 100;border-bottom: 0px; width: 31%">File Name</th>
+                                <th style="font-weight: 100;border-bottom: 0px; width: 20%">Last Modified</th>
+                                <th style="font-weight: 100;border-bottom: 0px; width: 43%">File Size</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <!-- <div id="tooltipShow">
+                        <p><a class="test" href="#" data-toggle="tooltip" data-placement="top" title="To start, click on one of these tabs to access your files."></a></p>
+                    </div> -->
+                            <tr ng-repeat="file in fileList track by file.id">
+                                <!-- <div ng-if="selectedCloud == 'Dropbox' "> -->
+                                <td align="center" cfid="{{file.path_lower}}" ng-if-start="selectedCloud == 'Dropbox' ">
+                                    <input type="checkbox" ng-model="file.selected"
+                                        ng-click="onFileSelectionChanged($event, file)" />
+                                </td>
+                                <td cfid="{{file.path_lower}}"><img height="32" onerror="this.src='images/ic_file.png';"
+                                        src="{{file.fileIcon}}" width="30" style="padding-right: 8px;" /><a class="dtdf"
+                                        draggable="true" cfid="{{file.path_lower}}" href=""
+                                        ng-click="downloadFile(file)">{{file.title}}</a></td>
+                                <td cfid="{{file.path_lower}}">{{file.client_modified}}</td>
+                                <td cfid="{{file.path_lower}}" ng-if-end="" style="width:22%;">{{file.size}}
+                                    <span style="float: right !important;">
+                                        <div class="btn-group dropdown-parent">
+
+                                            <button type="button" ng-if="file['.tag'] != 'folder'"
+                                                style="border-radius: 2px; !important;" id="Primarybtn"
+                                                class="btn btn-primary" ng-click="openAIModal(file)"> AI </button>
+                                            <button type="button" style="border-radius: 2px; !important;"
+                                                id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                                data-toggle="dropdown"> Options <span class="caret"></span></button>
+                                            <ul class="dropdown-menu" role="menu">
+                                                <li><a href="" ng-click="downloadFile(file)"
+                                                        data-toggle="modal">Download</a></li>
+                                                <li><a href="" ng-click="setFileName(file.title, file.path_lower);"
+                                                        ng-show="isSelected" data-target="#myModal"
+                                                        data-toggle="modal">Rename</a></li>
+                                                <li><a href="" ng-click="deleteFile(file.path_lower, file.title);"
+                                                        data-toggle="modal">Delete</a></li>
+                                                <li><a href=""
+                                                        ng-click="openAdvanceShareDialog(file.path_lower, file.title);"
+                                                        data-target="#advanceShareModel" data-toggle="modal">Advance
+                                                        Share</a></li>
+                                                <li><a href="" ng-click="shareFile(file.path_lower, file.title);"
+                                                        data-target="#shareViaEmail1" data-toggle="modal">Share</a></li>
+                                                <li><a href="" ng-click="encryptDecrypt(file.path_lower, file.title);"
+                                                        data-toggle="modal">Encrypt / Decrypt</a></li>
+                                                <li><a href="" ng-click="moveToOtherClouds(file.id, file.title);"
+                                                        data-target="#dragPanalModel" data-toggle="modal">Move</a></li>
+                                            </ul>
+                                        </div>
+                                    </span>
+                                </td>
+                                <!-- <td cfid="{{file.path}}" ng-if-end="">{{file.size}}<span><a class="btn btn-secondary" id="sharebtn" href="#" role="button" data-toggle="modal" data-target="#shareModal"> Share </a></span> </td> -->
+
+                                <!-- </div> --><!-- <div ng-if="selectedCloud == 'GoogleDrive' "> -->
+                                <td align="center" cfid="{{file.id}}" ng-if-start="selectedCloud == 'GoogleDrive' ">
+                                    <input type="checkbox" ng-model="file.selected"
+                                        ng-click="onFileSelectionChanged($event, file)" /></td>
+                                <td cfid="{{file.id}}"><img height="32" onerror="this.src='images/ic_file.png';"
+                                        src="{{file.fileIcon}}" width="30"
+                                        style="padding-right: 8px;object-fit:contain;" />
+                                    <a class="dtdf" draggable="true" cfid="{{file.id}}" href=""
+                                        ng-click="downloadFile(file, 'FileView', $event)"
+                                        ng-dblclick="downloadFile(file, 'FileView', $event)">
+                                        {{file.title}}
+                                    </a>
+                                    <img ng-if="inProgressArr.indexOf(file.id) !== -1" height="32"
+                                        src="images/in-progress.png" width="30"
+                                        style="padding-left: 8px;object-fit:contain;" title="In Progress" />
+                                </td>
+                                <td cfid="{{file.id}}">{{file.modifiedDate}}</td>
+                                <td cfid="{{file.id}}" ng-if-end="" style="width:22%;">{{file.fileSize}}
+                                    <span style="float: right !important;">
+                                        <div class="btn-group dropdown-parent">
+                                            <button type="button"
+                                                ng-if="(HIPAA || GDPR || PCI) && file.mimeType != 'application/vnd.google-apps.folder'"
+                                                style="border-radius: 2px; !important;" class="btn btn-link"
+                                                ng-click="openAIModal(file, true, 'c')"> Check Compliance </button>
+                                            <button type="button"
+                                                ng-if="(dataLeakProtection) && file.mimeType != 'application/vnd.google-apps.folder'"
+                                                style="border-radius: 2px; !important;" class="btn btn-link"
+                                                ng-click="openAIModal(file, true, 's')"> Check Security </button>
+                                            <button type="button"
+                                                ng-if="file.mimeType != 'application/vnd.google-apps.folder'"
+                                                style="border-radius: 2px; !important;" id="Primarybtn"
+                                                class="btn btn-primary" ng-click="openAIModal(file)"> AI </button>
+                                            <button type="button" style="border-radius: 2px; !important;"
+                                                id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                                data-toggle="dropdown"> Options <span class="caret"></span></button>
+                                            <ul class="dropdown-menu" role="menu">
+                                                <li><a href="" ng-click="downloadFile(file)"
+                                                        data-toggle="modal">Download</a></li>
+                                                <li><a href="" ng-click="setFileName(file.title, file.id);"
+                                                        ng-show="isSelected" data-target="#myModal"
+                                                        data-toggle="modal">Rename</a></li>
+                                                <li><a href="" ng-click="deleteFile(file.id, file.title);"
+                                                        data-toggle="modal">Delete</a></li>
+                                                <li><a href="" ng-click="openAdvanceShareDialog(file.id, file.title);"
+                                                        data-target="#advanceShareModel" data-toggle="modal">Advance
+                                                        Share</a></li>
+                                                <li><a href="" ng-click="shareFile(file.id, file.title);"
+                                                        data-target="#shareViaEmail1" data-toggle="modal">Share</a></li>
+                                                <li><a href="" ng-click="encryptDecrypt(file.id, file.title);"
+                                                        data-toggle="modal">Encrypt / Decrypt</a></li>
+                                                <li><a href="" ng-click="moveToOtherClouds(file.id, file.title);"
+                                                        data-target="#dragPanalModel" data-toggle="modal">Move</a></li>
+                                            </ul>
+                                        </div>
+                                    </span>
+                                </td>
+                                <!-- </div> --><!-- <div ng-if="selectedCloud == 'Box' "> -->
+                                <td align="center" cfid="{{file.id}}" ng-if-start="selectedCloud == 'Box' "><input
+                                        type="checkbox" ng-model="file.selected"
+                                        ng-click="onFileSelectionChanged($event, file)" /></td>
+                                <td cfid="{{file.id}}"><img height="32" onerror="this.src='images/ic_file.png';"
+                                        src="{{file.fileIcon}}" width="30" style="padding-right: 8px;" /><a class="dtdf"
+                                        draggable="true" cfid="{{file.id}}" href=""
+                                        ng-click="downloadFile(file)">{{file.name}}</a></td>
+                                <td cfid="{{file.id}}">&nbsp;</td>
+                                <td cfid="{{file.id}}" ng-if-end="" style="width:22%;">&nbsp;
+                                    <span style="float: right !important;">
+                                        <div class="btn-group dropdown-parent">
+                                            <button type="button" ng-if="file.type != 'folder'"
+                                                style="border-radius: 2px; !important;" id="Primarybtn"
+                                                class="btn btn-primary" ng-click="openAIModal(file)"> AI </button>
+                                            <button type="button" style="border-radius: 2px; !important;"
+                                                id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                                data-toggle="dropdown"> Options <span class="caret"></span></button>
+                                            <ul class="dropdown-menu" role="menu">
+                                                <li><a href="" ng-click="downloadFile(file)"
+                                                        data-toggle="modal">Download</a></li>
+                                                <li><a href="" ng-click="setFileName(file.name, file.id);"
+                                                        ng-show="isSelected" data-target="#myModal"
+                                                        data-toggle="modal">Rename</a></li>
+                                                <li><a href="" ng-click="deleteFile(file.id, file.name);"
+                                                        data-toggle="modal">Delete</a></li>
+                                                <li><a href="" ng-click="openAdvanceShareDialog(file.id, file.name);"
+                                                        data-target="#advanceShareModel" data-toggle="modal">Advance
+                                                        Share</a></li>
+                                                <li><a href="" ng-click="shareFile(file.id, file.name);"
+                                                        data-target="#shareViaEmail1" data-toggle="modal">Share</a></li>
+                                                <li><a href="" ng-click="encryptDecrypt(file.id, file.name);"
+                                                        data-toggle="modal">Encrypt / Decrypt</a></li>
+                                                <li><a href="" ng-click="moveToOtherClouds(file.id, file.name);"
+                                                        data-target="#dragPanalModel" data-toggle="modal">Move</a></li>
+                                            </ul>
+                                        </div>
+                                    </span>
+                                </td>
+                                <!-- </div> --><!-- <div ng-if="selectedCloud == 'OneDrive' "> -->
+                                <td align="center" cfid="{{file.id}}" ng-if-start="selectedCloud == 'OneDrive' "><input
+                                        type="checkbox" ng-model="file.selected"
+                                        ng-click="onFileSelectionChanged($event, file)" /></td>
+                                <td cfid="{{file.id}}"><img height="32" onerror="this.src='images/ic_file.png';"
+                                        src="{{file.fileIcon}}" width="30" style="padding-right: 8px;" /><a class="dtdf"
+                                        draggable="true" cfid="{{file.id}}" href=""
+                                        ng-click="downloadFile(file)">{{file.name}}</a></td>
+                                <td cfid="{{file.id}}">{{file.lastModifiedDateTime}}</td>
+                                <td cfid="{{file.id}}" ng-if-end="" style="width:22%;">{{file.size}}
+                                    <span style="float: right !important;">
+                                        <div class="btn-group dropdown-parent">
+                                            <button type="button" ng-if="file.file"
+                                                style="border-radius: 2px; !important;" id="Primarybtn"
+                                                class="btn btn-primary" ng-click="openAIModal(file)"> AI </button>
+                                            <button type="button" style="border-radius: 2px; !important;"
+                                                id="Primarybtn" class="btn btn-primary dropdown-toggle"
+                                                data-toggle="dropdown"> Options <span class="caret"></span></button>
+                                            <ul class="dropdown-menu" role="menu">
+                                                <li><a href="" ng-click="downloadFile(file)"
+                                                        data-toggle="modal">Download</a></li>
+                                                <li><a href="" ng-click="setFileName(file.name, file.id);"
+                                                        ng-show="isSelected" data-target="#myModal"
+                                                        data-toggle="modal">Rename</a></li>
+                                                <li><a href="" ng-click="deleteFile(file.id, file.name);"
+                                                        data-toggle="modal">Delete</a></li>
+                                                <li><a href="" ng-click="openAdvanceShareDialog(file.id, file.name);"
+                                                        data-target="#advanceShareModel" data-toggle="modal">Advance
+                                                        Share</a></li>
+                                                <li><a href="" ng-click="shareFile(file.id, file.name);"
+                                                        data-target="#shareViaEmail1" data-toggle="modal">Share</a></li>
+                                                <li><a href="" ng-click="encryptDecrypt(file.id, file.name);"
+                                                        data-toggle="modal">Encrypt / Decrypt</a></li>
+                                                <li><a href="" ng-click="moveToOtherClouds(file.id, file.name);"
+                                                        data-target="#dragPanalModel" data-toggle="modal">Move</a></li>
+                                            </ul>
+                                        </div>
+                                    </span>
+                                </td>
+                                <!-- </div> -->
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <ul class="dropdown-menu" id="contextMenu" role="menu" style="display: none">
+                        <li><a href="" tabindex="-1">Download</a></li>
+                        <li><a ng-show="isSelected" data-target="#myModal" data-toggle="modal" href=""
+                                tabindex="-1">Rename</a></li>
+                        <li><a href="" tabindex="-1">Delete</a></li>
+                        <li><a data-target="#advanceShareModel" data-toggle="modal" href="" tabindex="-1">Advance
+                                Share</a></li>
+                        <li><a href="" tabindex="-1" data-toggle="model">Share</a></li>
+                        <li><a href="" tabindex="-1">Encrypt / Decrypt</a></li>
+                        <li><a data-target="#dragPanalModel" data-toggle="modal" href="" tabindex="-1">Move</a></li>
+
+                    </ul>
+                    <!--<div ng-show="isFolderUpload"  class="folderDropUpload">
+                  <input type="file" multiple webkitdirectory id="folderUploadInput"/>
+                </div>-->
+                </section>
+            </div>
+            <!-- /.content-wrapper --><!-- Main Footer -->
+            <div ng-show="isEnterprise"
+                style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999;">
+
+                <div
+                    style="background-color: #ffffff; color: #333; width: 400px; border-radius: 12px; padding: 20px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); text-align: center; font-family: Arial, sans-serif; position: relative;">
+                    <button ng-show="!isMandatory" ng-click="closeModal()"
+                        style="position: absolute; top: -20px; right: -20px; background: #ff4d4d; border: none; font-size: 25px; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);">
+                        &times;
+                    </button>
+
+                    <div style="position: relative; display: inline-block; margin-bottom: 20px;">
+                        <div
+                            style="width: 60px; height: 60px; border-radius: 50%; background-color: #f3f3f3; display: flex; justify-content: center; align-items: center; margin: 0 auto;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#666"
+                                style="width: 36px; height: 36px;">
+                                <path
+                                    d="M12 12c2.485 0 4.5-2.015 4.5-4.5S14.485 3 12 3 7.5 5.015 7.5 7.5 9.515 12 12 12zm0 1.5c-2.49 0-7.5 1.255-7.5 3.75V18c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-1.5c0-2.495-5.01-3.75-7.5-3.75z" />
+                            </svg>
+                        </div>
+                        <div
+                            style="position: absolute; top: -5px; left: 0; background-color: #4CAF50; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; border: 2px solid white;">
+                            ✓
+                        </div>
+                    </div>
+
+                    <h2 style="margin-bottom: 15px; font-size: 20px; font-weight: bold;">Two Factor Authentication Setup
+                    </h2>
+                    <p style="font-size: 14px; margin-bottom: 20px;">For enhanced security, your organization requires
+                        you to set up two-factor authentication.</p>
+                    <p style="font-size: 14px; margin-bottom: 20px; color: #555;">Do you want to enable two-factor
+                        authentication for your account?</p>
+
+                    <div style="display: flex; justify-content: space-between;">
+                        <button ng-show="!isMandatory"
+                            style="width: 45%; padding: 10px; background-color: #f3f3f3; border: 1px solid #ddd; color: #333; font-size: 16px; border-radius: 5px; cursor: pointer;">
+                            Skip for Now
+                        </button>
+                        <button
+                            style="width: 45%; padding: 10px; background-color: #007bff; border: none; color: white; font-size: 16px; border-radius: 5px; cursor: pointer;">
+                            Yes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="main-footer"><!-- To the right -->
+                <div class="pull-right hidden-xs">VeeKrypt</div>
+                <!-- Default to the left --><strong>Copyright &copy; 2025 <a href="#">VeeKrypt LLC</a>.</strong> All
+                rights reserved.
+            </footer>
+
+            <div class="control-sidebar-bg">&nbsp;</div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="aiModal" role="dialog">
+        <div class="modal-dialog modal-md"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" ng-click="closeAIModal()" type="button">&times;</button>
+
+                    <h4 class="modal-title">Ask AI</h4>
+                </div>
+
+                <div class="modal-body">
+                    <textarea name="queTA" ng-show="!aiResText && !aiDirectResponse" ng-model="queTA"
+                        placeholder="Ask anything" required="" type="textarea" rows="5"
+                        style="border:1px solid #767676; border-radius:3px;" />
+                    <div ng-show="aiResText" style="max-height: 68vh;overflow-y: auto;" ng-bind-html="aiResText"></div>
+                    <!-- <a ng-show="pdfUrl" ng-href="{{pdfUrl}}"  target="_blank">Click here to view document</a> -->
+                    <a ng-show="pdfUrl" href="" ng-click="openPdf()">Click here to view document</a>
+                    <!-- <iframe ng-show="pdfUrl" ng-src="{{pdfUrl}}" width="100%" height="300px"></iframe> -->
+                </div>
+
+                <div class="modal-footer">
+                    <span ng-show="isAILoad"
+                        style="background:url(images/loading.gif) no-repeat center center;width:30px;height:30px;">&nbsp;</span>
+                    <button class="btn btn-default" style="margin-top:3px;" ng-show="!aiResText && !aiDirectResponse"
+                        ng-disabled="!queTA" ng-click="getAIResponse();" type="button">Generate</button>
+                    <button class="btn btn-default" style="margin-top:3px;" ng-show="pdfUrl"
+                        ng-click="saveAIResponseFile();" type="button">Save</button>
+                    <button class="btn btn-default" style="margin-top:3px;" ng-show="aiResText"
+                        ng-click="clearAIResponse();" type="button">Clear</button>
+                    <button class="btn btn-default" style="margin-top:3px;" ng-click="closeAIModal()"
+                        type="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createFolderModel" role="dialog">
+        <div class="modal-dialog modal-md"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">Create New Folder</h4>
+                </div>
+
+                <div class="modal-body"><label for="name">Name:</label> <input name="newFolderName"
+                        ng-model="newFolderName" required="" type="text" /></div>
+
+                <div class="modal-footer"><button class="btn btn-default" ng-click="createFolder();"
+                        type="button">OK</button><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">Rename File</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form name="ReName" novalidate="">
+                        <p>Original File Name is: {{originalFileName}}</p>
+                        <input name="newName" ng-model="newName" required="" type="text" />
+                        <span ng-show="ReName.newName.$dirty &amp;&amp; ReName.newName.$invalid" style="color:red">
+                        </span>
+                        <input id="closemodal" ng-click="renameFile();"
+                            ng-disabled="ReName.newName.$dirty &amp;&amp; ReName.newName.$invalid || isLoad"
+                            type="button" value="Rename" />
+                        <img alt="" ng-show="isLoad" src="images/loader.gif" />
+                    </form>
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">Upload File</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form name="UpLoad">
+                        <input file-model="myFile" name="myFile" ng-model="myFile" required="" type="file" />
+                        <input id="closeuploadmodal" ng-click="uploadFile();"
+                            ng-disabled="UpLoad.myFile.$invalid || isLoad" type="button" value="Upload File" />
+                        <img alt="" ng-show="isLoad" src="images/loader.gif" />
+                    </form>
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload File Encrypted -->
+    <div class="modal fade" id="uploadModalEncrypted" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">Upload File</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form name="UpLoadEncrypted"><input file-model="myFile" name="myFile" ng-model="myFile" required=""
+                            type="file" />
+                        <br>
+                        <input type="checkbox" name="isEncrpted" ng-click="onDialogCheckBoxSelectionChange()"> Secure
+                        the file using encryption after the upload completes.<br>
+                        <br>
+                        <input id="closeuploadmodal" ng-click="uploadModalEncrypted();"
+                            ng-disabled="UpLoad.myFile.$invalid || isLoad" type="button" value="Upload File" /> <img
+                            alt="" ng-show="isLoad" src="images/loader.gif" />
+                    </form>
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!--Upload Folder -->
+    <div class="modal fade" id="uploadFolderModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">Upload Folder</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form name="UpLoad">
+                        <input file-model="myFile" name="myFile" ng-model="myFile" required="" id="folderUploadInput"
+                            type="file" webkitdirectory directory multiple />
+                        <br>
+                        <input type="checkbox" name="isEncrpted" ng-click="onDialogCheckBoxSelectionChange()"> Secure
+                        the folder using encryption after the upload completes.<br>
+                        Please note that encrypting the entire fodler may take a few minutes.
+                        <br>
+                        <br>
+                        <input ng-click="uploadFolder();" ng-disabled="UpLoad.myFile.$invalid || isLoad" type="button"
+                            value="Upload Folder" />
+                    </form>
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!--Advance Share modal -->
+    <div class="modal fade" id="advanceShareModel" role="dialog">
+        <div class="modal-dialog modal-md">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" style="color:#808080">
+                        <span class="glyphicon glyphicon-folder-close fa-1x" id="b"></span> File Name :
+                        {{sharedFileName}}
+                    </h4>
+                </div>
+                <div class="modal-body" style="color:#808080">
+                    <p>How do you want to share this file ?</p>
+                    <div class="container" style="width: 570px;">
+                        <div class="form-group">
+                            <label for="reqFileName">Share TO:</label>
+                            <input type="text" placeholder="Name" class="form-control" id="advSharerName"
+                                name="advSharerName" ng-model="advSharerName">
+                        </div>
+                        <textarea name="advShareEmailAddress" ng-model="advShareEmailAddress"
+                            placeholder="To :email address(es)"></textarea>
+                        <textarea name="advShareMessage" ng-model="advShareMessage"
+                            placeholder="Message to share..!!"></textarea>
+                        <form class="form-inline group">
+                            <h5> From : </h5>
+                            <div class="form-group row" style="margin-left:20px;">
+                                <label class="col-sm-2 col-form-label">
+                                    <h5>Date:</h5>
+                                </label>
+                                <div class="col-sm-2" class="fa fa-calendar">
+                                    <input class="form-control" ng-model="advShareFromDtm" id="advShareFromDtm"
+                                        name="advShareFromDtm" placeholder="Today" type="text" style="width:170px;" />
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-left:20px;">
+                                <label class="col-sm-2 col-form-label">
+                                    <h5>Time:</h5>
+                                </label>
+                                <div class="col-sm-2" class="fa fa-calendar">
+                                    <input class="form-control" ng-model="advShareFromTime" id="datepicker1dd"
+                                        name="time" type="text" style="width:170px;" />
+                                </div>
+                            </div>
+                            <h5> To : </h5>
+                            <div class="form-group row" style="margin-left:20px;">
+                                <label class="col-sm-2 col-form-label">
+                                    <h5>Date:</h5>
+                                </label>
+                                <div class="col-sm-2" class="fa fa-calendar">
+                                    <input class="form-control" ng-model="advShareToDtm" id="advShareToDtm"
+                                        name="advShareToDtm" placeholder="Today" type="text" style="width:170px;" />
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-left:20px;">
+                                <label class="col-sm-2 col-form-label">
+                                    <h5>Time:</h5>
+                                </label>
+                                <div class="col-sm-2" class="fa fa-calendar">
+                                    <input class="form-control" ng-model="advShareToTime" id="datepicker3dd" name="time"
+                                        type="text" style="width:170px;" />
+                                </div>
+                            </div>
+                            </br>
+                            </br>
+                            <div class="radio">
+                                <label><input type="radio" value="0" ng-model="advShareCanDownload"
+                                        name="advShareCanDownload"> Allow view only</label>
+                            </div>
+                            </br>
+                            <div class="radio">
+                                <label><input type="radio" value="1" ng-model="advShareCanDownload"
+                                        name="advShareCanDownload" checked="checked"> Allow the downloading of
+                                    file</label>
+                            </div>
+                        </form>
+                    </div>
+                    </br>
+                    <div class="modal-footer" id="buttonInPopup">
+                        <button type="button" ng-click="advanceShareFile();" class="btn btn-default"
+                            style="width:110px">
+                            <span class="glyphicon glyphicon-envelope fa-1x btn-md" id="bsd"></span> Email
+                        </button>
+                        <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AppStore Model Start -->
+
+    <div class="modal fade" id="appStoreModel" role="dialog">
+        <div class="modal-dialog modal-md">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" style="color:#808080"><span class="glyphicon glyphicon-link"></span> iOS
+                        Applications on App Store </h4>
+                </div>
+                <div class="modal-body" style="color:#808080">
+                    <div class="container" style="padding-left:70px;">
+                        <label for="appStore" class="control-label">App Store url:
+                            https://itunes.apple.com/us/app/id979972214</label>
+                        </br>
+                        <div style="width:535px;">
+                            <input id="asURL" value="https://itunes.apple.com/us/app/id979972214" type="text"
+                                style="display:none;">
+                            <a href="" id="asURLBtn" class="btn btn-primary" data-clipboard-target="#asURL"
+                                role="button" aria-pressed="true">Copy to clipboard</a>
+                            <a href="" class="btn btn-primary"
+                                ng-click="sendMobileAppURLToEmmail('Cloud-Fish iOS Application URL', 'https://itunes.apple.com/us/app/id979972214');"
+                                role="button" aria-pressed="true">Email link to me</a>
+                            <a href="https://itunes.apple.com/us/app/id979972214" target="_blank"
+                                class="btn btn-primary" role="button" aria-pressed="true">Go to Apple App store</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AppStore Model End -->
+
+    <!-- PlayStore Model Start -->
+
+    <div class="modal fade" id="playStoreModel" role="dialog">
+        <div class="modal-dialog modal-md">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" style="color:#808080"><span class="glyphicon glyphicon-link"></span> Android
+                        Application on Google Play Store </h4>
+                </div>
+                <div class="modal-body" style="color:#808080">
+                    <div class="container" style="padding-left:70px;">
+                        <label style="width:535px;" for="playStore" class="control-label">Play Store url:
+                            https://play.google.com/store/apps/details?id=com.nexscience.nexdoccloud&hl=en</label>
+                        </br>
+                        <div style="width:535px;">
+                            <input id="psURL"
+                                value="https://play.google.com/store/apps/details?id=com.nexscience.nexdoccloud&hl=en"
+                                type="text" style="display:none;">
+                            <a href="" id="psURLBtn" class="btn btn-primary" role="button"
+                                data-clipboard-target="#psURL" aria-pressed="true">Copy to clipboard</a>
+                            <a ng-click="sendMobileAppURLToEmmail('Cloud-Fish Android Application URL', 'https://play.google.com/store/apps/details?id=com.nexscience.nexdoccloud&hl=en');"
+                                href="" class="btn btn-primary" role="button" aria-pressed="true">Email link to me</a>
+                            <a target="_blank"
+                                href="https://play.google.com/store/apps/details?id=com.nexscience.nexdoccloud&hl=en"
+                                class="btn btn-primary" role="button" aria-pressed="true">Go to Google Play store</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PlayStore Model End -->
+
+    <!--ShareUrlModal -->
+
+    <div class="modal fade" id="shareURLModel" role="dialog">
+        <div class="modal-dialog modal-md">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" style="color:#808080"><span class="glyphicon glyphicon-link"></span> Share
+                        URL : </h4>
+                </div>
+                <div class="modal-body" style="color:#808080">
+
+
+                    <div class="container">
+                        <form form class="form-inline" role="form">
+
+                            <div class="form-group">
+                                <label for="share" class="control-label">Share url: </label>
+                                <input name="shareFileTF" ng-model="shareFileTF" type="text" class="form-control"
+                                    id="shareFileTF"
+                                    style="width:460px; color:#000000 !important; padding: 6px; font-size: 15px; font-family: Arial, Helvetica, sans-serif;">
+                            </div>
+
+                        </form>
+                    </div>
+                    </br>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" ng-click="copyTFToClipBoard('shareFileTF');">Copy
+                            to clipboard</button>
+                        <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalWithCarousel" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content" style="width: 650px;">
+                <div class="modal-header" style="padding-top: 8px;padding-bottom: 5px;">
+                    <label style="color:#1fadcd; font-size: 18px;"> Quick overview </label>
+                    <span> <button type="button" class="close" data-dismiss="modal"
+                            style="margin-left: 468px;">&times;</button> </span>
+
+                </div>
+
+                <div class="modal-body" style=" height: 400px; padding-top: 0px;padding-bottom: 0px;">
+
+                    <div class="container">
+                        <br>
+                        <div id="slider1_container"
+                            style="visibility: hidden; position: relative; margin: 0 auto; height: 369px;width: 1000px; margin-left: 5px; overflow: hidden;">
+                            <!-- Loading Screen -->
+                            <div u="loading" style="position: absolute; top: 0px; left: 0px;">
+                                <div style="filter: alpha(opacity=70); opacity:0.7; position: absolute; display: block;
+							background-color: #000; top: 0px; left: 0px;width: 100%; height:100%;">
+                                </div>
+                                <div style="position: absolute; display: block; background: url(images/loadingSlider.gif) no-repeat center center;
+							top: 0px; left: 0px;width: 100%;height:100%;">
+                                </div>
+                            </div>
+                            <!-- Slides Container -->
+                            <div u="slides" style="position: absolute; left: 0px; top: -15px; width: 550px; height: 369px;
+						overflow: hidden;">
+                                <div>
+                                    <img u="image" src2="images/Slide-1.png" />
+                                </div>
+                                <div>
+                                    <img u="image" src2="images/Slide-2.png" />
+                                </div>
+                                <div>
+                                    <img u="image" src2="images/Slide-3.png" />
+                                </div>
+                                <div>
+                                    <img u="image" src2="images/Slide-4.png" />
+                                </div>
+                                <div>
+                                    <img u="image" src2="images/Slide-5.png" />
+                                </div>
+                                <div>
+                                    <img u="image" src2="images/Slide-6.png" />
+                                </div>
+                            </div>
+                            <div u="navigator" class="jssorb05"
+                                style="bottom: 0px;margin-left: -200px;width: 156px;height: 16px;">
+                                <div u="prototype"></div>
+                            </div>
+                            <span u="arrowleft" class="jssora11l" style="top: 120px; left: -10px;">
+                            </span>
+                            <span u="arrowright" class="jssora11r" style="top: 120px; left: 550px;">
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="padding-top: 1px;padding-bottom: 1px;">
+
+                    <div class="checkbox">
+                        <label style="margin-right: 425px;">
+                            <input type="checkbox" ng-checked="false" value="" ng-click="dontShowNTClicked($event)">Do
+                            not show this next time</label>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="uploadMFnF" role="dialog">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" style="color:#808080"><span class="glyphicon glyphicon-link"></span>
+                        Uploading... </h4>
+                </div>
+                <div class="modal-body" style="color:#808080">
+                    <div class="container">
+                        <label class="control-label">{{curOperation}}</label>
+                    </div>
+                    </br>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default close" ng-click="closeUploadOperation()"
+                            data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="angularTrixModel" role="dialog">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" style="width: 650px;">
+                <div class="modal-header" style="padding-top: 8px;padding-bottom: 5px;">
+                    <label style="color:#1fadcd; font-size: 18px;"> Rich Text Editor </label>
+                </div>
+                <div class="modal-body" style=" height: 550px; padding-top: 0px;padding-bottom: 0px;">
+                    <div class="container">
+                        <input id="rtEditor" name="rtEditor" ng-model="rtEditor" type="hidden" name="content">
+                        <trix-editor style="width: 585px; height: 437px; !important;" input="rtEditor"
+                            ng-model-options="{ updateOn: 'blur' }" spellcheck="true" class="trix-content"
+                            ng-model="trix" placeholder="Write something.."></trix-editor>
+                    </div>
+                    </br>
+                    <div class="modal-footer">
+                        <button type="button" ng-show="isCloudSessionActive" class="btn btn-default"
+                            ng-click="onEmailRTFile();">Email</button>
+                        <button type="button" class="btn btn-default" ng-click="onUploadRTFile();">Save</button>
+                        <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="shareViaEmail" role="dialog">
+        <div class="modal-dialog modal-md" style="width: 740px;">
+            <div class="modal-content">
+                <div class="dialog_box_two">
+                    <div class="h_book">
+                        <img src="images/h-book.png" alt="" />
+                        <p>File Sharing</p>
+                    </div>
+                    <label class="save_as"><img src="images/save.png" alt="" />File name </label>
+                    <input type="text" name="sharedFilePath" ng-model="sharedFilePath" id="file" />
+                    <textarea name="toShareEmailAddArray" ng-model="toShareEmailAddArray"
+                        placeholder="To :email address(es)"></textarea>
+                    <!--Add Group List Here-->
+                    <ul class="list-group">
+                        <li ng-repeat="sfile in listOfSharedMembers" id="{{sfile.email}}"
+                            class="list-group-item d-flex justify-content-between align-items-center">
+                            {{sfile.display_name}}
+                            <span class="badge badge-pill badge-secondary">
+                                <input type="button" name="submit" title="{{sfile.email}}"
+                                    ng-click="removeSharedMember($event);" value=" Remove "
+                                    style="background-color: transparent; border: 0px" />
+                            </span>
+                        </li>
+                    </ul>
+                    <ul class="cancel_button">
+                        <li><input data-dismiss="modal" ng-click="shareDecryptedGoogleDriveFileViaEmail();"
+                                type="submit" name="reset" id="reset" value="Share" /></li>
+                        <li><input data-dismiss="modal" type="submit" name="submit" id="submit1" value="Cancel" /></li>
+                    </ul>
+                    <a class="more_options" href="#">More Options <img src="images/error.png" alt="" /></a>
+                    <label class="save_as">File Share link:</label>
+                    <input class="file_share" type="text" name="sharedFileURL" ng-model="sharedFileURL" /><a
+                        ng-click="copyTFToClipBoard('sharedFileURL');" class="copy_link" href="#">Copy Link</a>
+                    <div class="decrypt">
+                        <input ng-disabled="sharedFileName.indexOf('.$enc') == -1" class="decrypt"
+                            ng-model="isShareDecrypted" style="margin: 10px;" type="checkbox" name="decrypt"
+                            value="Decrypt the file before sharing">Decrypt the file before sharing
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="shareRTFileViaEmail" role="dialog">
+        <div class="modal-dialog modal-md" style="width: 660px;">
+            <div class="modal-content">
+                <div class="dialog_box">
+                    <p><img src="images/share-icon.png" alt="" />Share via email</p>
+                    <label class="save_as"><img src="images/save.png" alt="" />Save As:</label>
+                    <input type="text" name="save" id="save" name="sharedFilePath" ng-model="sharedFilePath" />
+                    <label>Email the file to</label>
+                    <textarea name="toShareEmailAddArray" ng-model="toShareEmailAddArray"
+                        placeholder="Type email address(es) here"></textarea>
+                    <ul class="cancel_button">
+                        <li><input type="reset" name="reset" id="reset" value="Cancels" data-dismiss="modal" /></li>
+                        <li><input type="submit" ng-click="shareFileURLViaEmail();" name="submit" id="submit" value="Ok"
+                                data-dismiss="modal" /></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="dragPanalModel" role="dialog">
+        <div class="modal-dialog modal-md" style="width: 380px;">
+            <div class="modal-content" style="height: 475px;">
+                <div class="modal-body" style="color:#808080;">
+                    <div class="container">
+                        <div><span style="margin-left: 40px;"><strong>Please choose the destination:</strong></span>
+                        </div>
+                        <div><a ng-show="selectedCloud != 'Dropbox'" ng-click="moveToDropBox();" href="#"><img
+                                    src="images/Dropbox-Button.png" alt="Drop Box"></a></div>
+                        <div><a ng-show="selectedCloud != 'GoogleDrive'" ng-click="moveToGoogleDrive();" href="#"><img
+                                    src="images/GD-Button.png" alt="Google Drive"></a></div>
+                        <div><a ng-show="selectedCloud != 'Box'" href="#" ng-click="moveToBox();"><img
+                                    src="images/Box-Button.png" alt="Box"></a></div>
+                        <div><a ng-show="selectedCloud != 'OneDrive'" href="#" ng-click="downloadForBox();"><img
+                                    src="images/OneDrive-Button.png" alt="One Drive"></a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade modal-center" id="drawingPanel" role="modal" aria-labelledby="paint-modal-label"
+        aria-hidden="true">
+        <!--    <script src="plugin/drawing/paintangular.js"></script>-->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="fa fa-remove"></span>
+                    </button>
+                    <div id="color-panel">
+                        <div class="btn-group">
+                            <button class="btn" type="button" data-color="red" title="Red"
+                                style="background-color:red"></button>
+                            <button class="btn" type="button" data-color="lime" title="Green"
+                                style="background-color:lime"></button>
+                            <button class="btn" type="button" data-color="blue" title="Blue"
+                                style="background-color:blue"></button>
+                            <button class="btn" type="button" title="Yellow" data-color="yellow"
+                                style="background-color:yellow"></button>
+                            <button class="btn" type="button" data-color="magenta" title="Magenta"
+                                style="background-color:magenta"></button>
+                            <button class="btn" type="button" data-color="cyan" title="Cyan"
+                                style="background-color:cyan"></button>
+                            <button class="btn" type="button" title="Orange" data-color="orange"
+                                style="background-color:orange"></button>
+                            <button class="btn" type="button" data-color="purple" title="Purple"
+                                style="background-color:purple"></button>
+                            <button class="btn" type="button" title="Brown" data-color="brown"
+                                style="background-color:brown"></button>
+                            <button class="btn" type="button" title="Black" data-color="black"
+                                style="background-color:black"></button>
+                            <button class="btn" type="button" title="Gray" data-color="gray"
+                                style="background-color:gray"></button>
+                            <button class="btn" type="button" title="lavender" data-color="lavender"
+                                style="background-color:lavender"></button>
+                            <button class="btn" type="button" data-color="white" title="White"
+                                style="background-color:white"></button>
+                        </div>
+                    </div>
+                    <div id="paint-undo-redo">
+                        <div class="btn-group">
+                            <button id="undo-tool" class="btn" type="button" title="Undo">
+                                <div class="fa fa-undo"></div>
+                            </button>
+                            <button id="redo-tool" class="btn" type="button" title="Redo">
+                                <div class="fa fa-repeat"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <button id="paint-clear" type="button" class="btn btn-default">Clear</button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="paint">
+                        <div id="sketch"><canvas id="canvas"></canvas></div>
+                        <div id="paint-panel">
+                            <div class="btn-group">
+                                <button class="btn" type="button" data-divbtn="pencil" title="Pencil">
+                                    <div class="fa fa-pencil"></div>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="line" title="Line">
+                                    <b class="">&nbsp;|</b>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="eraser" title="Eraser">
+                                    <div class="fa fa-eraser"></div>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="square" title="Square">
+                                    <div class="fa fa-square-o"></div>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="fill" title="Fill">
+                                    <div class="fa fa-tint"></div>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="circle" title="Circle">
+                                    &nbsp;<div class="fa fa-circle-o"></div>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="text" title="Text">
+                                    <div class="fa fa-font"></div>
+                                </button>
+                                <button class="btn" type="button" data-divbtn="ellipse" title="Ellipse">
+                                    <div class="fa fa-opera"></div>
+                                </button>
+                            </div>
+                            <form id="choose-size">
+                                <div class="title">pick size</div>
+                                <div class="radio-group">
+                                    <input type="radio" name="size" value="1">1
+                                </div>
+                                <div class="radio-group">
+                                    <input type="radio" name="size" value="2" checked="checked">2
+                                </div>
+                                <div class="radio-group"><input type="radio" name="size" value="3">3</div>
+                                <div class="radio-group"><input type="radio" name="size" value="4">4</div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" ng-show="isCloudSessionActive" class="btn btn-default"
+                        ng-click="onEmailPaintFile();">Email</button>
+                    <button type="button" class="btn btn-default" ng-click="onUploadPaintFile();">Save</button>
+                    <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Cancel</button>
+                </div>
+                <!--<div class="modal-footer">
+                <button type="button" id="paint-submit" class="btn btn-success" data-dismiss="modal">OK</button>
+            </div>-->
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="AudiPanelMoel" role="dialog">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" style="width: 650px;">
+                <div class="modal-header" style="padding-top: 8px;padding-bottom: 5px;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <label style="color:#1fadcd; font-size: 18px;"> Voice Memo </label>
+                </div>
+                <div id="vmBody" class="modal-body" style=" height: 100%;">
+                    <div id="viz">
+                        <canvas id="analyser" style="display: inline-block; background: #202020;
+                        box-shadow: 0px 0px 10px blue;" width="600" height="300"></canvas>
+                    </div>
+                    <div id="controls">
+                        <!--<img ng-show="recordingStatus < 2" style="padding-top: 10px;" id="record" src="images/mic128.png" ng-click = "toggleRecording();">-->
+                        <button id="record" ng-show="recordingStatus < 2" style="margin-top: 10px;" type="button"
+                            class="btn btn-default" ng-click="toggleRecording();">Start Recording</button>
+                    </div>
+                </div>
+                <div class="modal-footer" ng-show="recordingStatus == 2">
+                    <button type="button" ng-show="isCloudSessionActive" class="btn btn-default"
+                        ng-click="onEmailVoiceMemoFile();">Email</button>
+                    <button type="button" class="btn btn-default" ng-click="onUploadVoiceMemoFile();">Save</button>
+                    <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Starting Work document Creating Model-->
+    <div class="modal fade" id="gdDocModel" role="dialog">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" style="width: 650px;">
+                <div class="modal-header" style="padding-top: 8px;padding-bottom: 5px;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <label style="color:#1fadcd; font-size: 18px;"> {{gdriveDocHead}} </label>
+                </div>
+                <div id="vmBody" ng-if="!startDocFileProcess" class="modal-body" style=" height: 100%;">
+                    <div class="alert alert-warning">{{gdriveDocHead}} is creating...</div>
+                </div>
+                <div id="vmBody" ng-if="startDocFileProcess" class="modal-body" style=" height: 100%;">
+                    <div class="alert alert-success">{{gdriveDocHead}} created successfully.</div>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Work document Creating Model-->
+
+    <!--requestAFile-->
+
+    <div class="modal fade" id="requestAFile" role="dialog">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" style="width: 650px;">
+                <div class="modal-header" style="padding-top: 8px;padding-bottom: 5px;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <label style="color:#1fadcd; font-size: 18px;"> Request a File </label>
+                </div>
+                <div id="reqFile" class="modal-body" style=" height: 100%;">
+                    <div class="form-group">
+                        <label for="reqFileName">Request TO:</label>
+                        <input type="text" placeholder="Name" class="form-control" id="reqFileName" name="reqFileName"
+                            ng-model="reqFileName">
+                    </div>
+                    <div class="form-group">
+                        <label for="reqFileEmail">Email:</label>
+                        <input type="text" placeholder="email@exmaple.com" class="form-control" id="reqFileEmail"
+                            name="reqFileEmail" ng-model="reqFileEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="reqFileBody">Comment:</label>
+                        <textarea class="form-control" rows="5" id="reqFileBody" name="reqFileBody"
+                            ng-model="reqFileBody"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" ng-click="onSendRequestAFile();">Send Request</button>
+                    <img alt="" ng-show="isLoad" src="images/loader.gif" />
+                    <button type="button" class="btn btn-default" class="close" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loginODModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">You are going to login to your Microsoft OneDrive account</h4>
+                </div>
+
+                <div class="modal-body">
+                    <strong>Please note that:</strong>
+
+                    <p>1) Your account credentials will not be stored by Veekrypt</p>
+
+                    <p>2) Any files or documents you have currently stored in your Microsoft OneDrive account will not
+                        be automatically changed or updated.</p>
+
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loginDBModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">You are going to login to your DropBox account</h4>
+                </div>
+
+                <div class="modal-body">
+                    <strong>Please note that:</strong>
+
+                    <p>1) Your account credentials will not be stored by Veekrypt</p>
+
+                    <p>2) Any files or documents you have currently stored in your DropBox OneDrive account will not be
+                        automatically changed or updated.</p>
+
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loginGDModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">You are going to login to your Google Drive account</h4>
+                </div>
+
+                <div class="modal-body">
+                    <strong>Please note that:</strong>
+
+                    <p>1) Your account credentials will not be stored by Veekrypt</p>
+
+                    <p>2) Any files or documents you have currently stored in your Google Drive account will not be
+                        automatically changed or updated.</p>
+
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loginBNModal" role="dialog">
+        <div class="modal-dialog"><!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header"><button class="close" data-dismiss="modal" type="button">&times;</button>
+
+                    <h4 class="modal-title">You are going to login to your Box NET account</h4>
+                </div>
+
+                <div class="modal-body">
+                    <strong>Please note that:</strong>
+
+                    <p>1) Your account credentials will not be stored by Veekrypt</p>
+
+                    <p>2) Any files or documents you have currently stored in your BOX Net account will not be
+                        automatically changed or updated.</p>
+
+                </div>
+
+                <div class="modal-footer"><button class="btn btn-default" data-dismiss="modal"
+                        type="button">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        $(function () {
+            (function ($, window) {
+                $.fn.contextMenu = function (settings) {
+                    return this.each(function () {
+                        // Open context menu
+                        $(this).on("contextmenu", function (e) {
+                            //open menu
+                            $(settings.menuSelector)
+                                .data("invokedOn", $(e.target))
+                                .show()
+                                .css({
+                                    position: "absolute",
+                                    left: getLeftLocation(e),
+                                    top: getTopLocation(e)
+                                })
+                                .off('click')
+                                .on('click', function (e) {
+                                    $(this).hide();
+                                    var $invokedOn = $(this).data("invokedOn");
+                                    var $selectedMenu = $(e.target);
+                                    settings.menuSelected.call(this, $invokedOn, $selectedMenu);
+                                });
+                            return false;
+                        });
+                        //make sure menu closes on any click
+                        $(document).click(function () {
+                            $(settings.menuSelector).hide();
+                        });
+                    });
+                    function getLeftLocation(e) {
+                        var mouseWidth = e.pageX;
+                        var pageWidth = $(window).width();
+                        var menuWidth = $(settings.menuSelector).width();
+                        // opening menu would pass the side of the page
+                        if (mouseWidth + menuWidth > pageWidth &&
+                            menuWidth < mouseWidth) {
+                            return mouseWidth - menuWidth;
+                        }
+                        return mouseWidth;
+                    }
+                    function getTopLocation(e) {
+                        var mouseHeight = e.pageY;
+                        var pageHeight = $(window).height();
+                        var menuHeight = $(settings.menuSelector).height();
+                        // opening menu would pass the bottom of the page
+                        if (mouseHeight + menuHeight > pageHeight &&
+                            menuHeight < mouseHeight) {
+                            return mouseHeight - menuHeight;
+                        }
+                        return mouseHeight;
+                    }
+                };
+            })(jQuery, window);
+
+            $("#cloudContentTable td").contextMenu({
+                menuSelector: "#contextMenu",
+                menuSelected: function (invokedOn, selectedMenu) {
+
+                }
+            });
+
+            $('[data-toggle="tooltip"]').tooltip();
+            $("#datepicker").datepicker();
+            $("#datepicker1").datepicker();
+            $("#datepicker2").datepicker();
+            $("#datepicker3").datepicker();
+
+            // Improved clipboard functionality
+            window.copyToClipboard = function(text) {
+                // Try modern clipboard API first
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        swal("Success!", "App store link copied to clipboard!", "success");
+                    }).catch(function(err) {
+                        console.error('Clipboard API failed:', err);
+                        fallbackCopyToClipboard(text);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    fallbackCopyToClipboard(text);
+                }
+            };
+            
+            // Fallback clipboard function for older browsers
+            window.fallbackCopyToClipboard = function(text) {
+                var textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    var successful = document.execCommand('copy');
+                    if (successful) {
+                        swal("Success!", "App store link copied to clipboard!", "success");
+                    } else {
+                        swal("Error!", "Failed to copy to clipboard. Please try again.", "error");
+                    }
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                    swal("Error!", "Failed to copy to clipboard. Please try again.", "error");
+                }
+                document.body.removeChild(textArea);
+            };
+            <!-- Slider Methods -->
+            var options = {
+                $AutoPlay: true,
+                $AutoPlaySteps: 1,
+                $Idle: 2000,
+                $PauseOnHover: 1,
+                $ArrowKeyNavigation: true,
+                $SlideEasing: $JssorEasing$.$EaseOutQuint,
+                $SlideDuration: 800,
+                $MinDragOffsetToSlide: 20,
+                $SlideSpacing: 0, 					                //[Optional] Space between each slide in pixels, default value is 0
+                $Cols: 1,
+                $ParkingPosition: 0,
+                $UISearchMode: 1,
+                $PlayOrientation: 1,
+                $DragOrientation: 1,
+                $ArrowNavigatorOptions: {                           //[Optional] Options to specify and enable arrow navigator or not
+                    $Class: $JssorArrowNavigator$,                  //[Requried] Class to create arrow navigator instance
+                    $ChanceToShow: 2,                               //[Required] 0 Never, 1 Mouse Over, 2 Always
+                    $AutoCenter: 2,                                 //[Optional] Auto center arrows in parent container, 0 No, 1 Horizontal, 2 Vertical, 3 Both, default value is 0
+                    $Steps: 1,                                      //[Optional] Steps to go for each navigation request, default value is 1
+                    $Scale: false                                   //Scales bullets navigator or not while slider scale
+                },
+                $BulletNavigatorOptions: {                                //[Optional] Options to specify and enable navigator or not
+                    $Class: $JssorBulletNavigator$,                       //[Required] Class to create navigator instance
+                    $ChanceToShow: 2,                               //[Required] 0 Never, 1 Mouse Over, 2 Always
+                    $AutoCenter: 1,                                 //[Optional] Auto center navigator in parent container, 0 None, 1 Horizontal, 2 Vertical, 3 Both, default value is 0
+                    $Steps: 1,                                      //[Optional] Steps to go for each navigation request, default value is 1
+                    $Rows: 1,                                      //[Optional] Specify lanes to arrange items, default value is 1
+                    $SpacingX: 12,                                   //[Optional] Horizontal space between each item in pixel, default value is 0
+                    $SpacingY: 4,                                   //[Optional] Vertical space between each item in pixel, default value is 0
+                    $Orientation: 1,                                //[Optional] The orientation of the navigator, 1 horizontal, 2 vertical, default value is 1
+                    $Scale: false                                   //Scales bullets navigator or not while slider scale
+                }
+            };
+            var jssor_slider1 = new $JssorSlider$("slider1_container", options);
+
+
+        });
+
+    </script>
+    <script>
+        $(function () {
+            $('#modalWithCarousel').modal({
+                show: false
+            }).on('hidden.bs.modal', function () {
+                $(this).find('audio')[0].pause();
+            });
+        });
+
+
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+            
+            // Add click handlers for app store modals
+            $('#appStoreModel').on('shown.bs.modal', function () {
+                // Remove any existing click handlers
+                $('#asURLBtn').off('click');
+                
+                // Add new click handler for iOS app store
+                $('#asURLBtn').on('click', function(e) {
+                    e.preventDefault();
+                    var text = $('#asURL').val();
+                    console.log('Copying iOS app URL:', text);
+                    window.copyToClipboard(text);
+                });
+            });
+            
+            $('#playStoreModel').on('shown.bs.modal', function () {
+                // Remove any existing click handlers
+                $('#psURLBtn').off('click');
+                
+                // Add new click handler for Android app store
+                $('#psURLBtn').on('click', function(e) {
+                    e.preventDefault();
+                    var text = $('#psURL').val();
+                    console.log('Copying Android app URL:', text);
+                    window.copyToClipboard(text);
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $('p a').tooltip().eq(0).tooltip('show').tooltip('disable').one('mouseout', function () {
+            $(this).tooltip('enable');
+        });
+
+        setTimeout(function () {
+            $('p a').tooltip().eq(0).tooltip('hide').tooltip('enable');
+        }, 4000);
+    </script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('body').removeClass('sidebar-collapse');
+            $('#loginGDModal').modal('hide');
+            $("#Primarybtn").tooltip({
+
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('a').tooltip({ placement: 'bottom' });
+        });
+    </script>
+
+    <!-- Google API Initialization -->
+    <script>
+        // Initialize Google API when the page loads
+        function initGoogleAPI() {
+            console.log('Attempting initialization', new Date());
+            
+            // Check if gapi is available
+            if (typeof gapi !== 'undefined') {
+                // Load both auth2 and client libraries
+                gapi.load('auth2:client', function() {
+                    gapi.auth2.init({
+                        client_id: '336132685293-mm957asursv9866bgimhecbkbls04ph9.apps.googleusercontent.com'
+                    }).then(function() {
+                        console.log('Google API initialized successfully');
+                        
+                        // Load the Drive API
+                        gapi.client.load('drive', 'v2', function() {
+                            console.log('Google Drive API v2 loaded successfully');
+                        }).catch(function(error) {
+                            console.error('Failed to load Google Drive API v2, trying v3:', error);
+                            // Try v3 as fallback
+                            gapi.client.load('drive', 'v3', function() {
+                                console.log('Google Drive API v3 loaded successfully');
+                            }).catch(function(error2) {
+                                console.error('Failed to load Google Drive API v3:', error2);
+                            });
+                        });
+                    }).catch(function(error) {
+                        console.error('Google API initialization failed:', error);
+                    });
+                });
+            } else {
+                console.error('Google API (gapi) not loaded');
+            }
+        }
+
+        // Initialize when document is ready
+        $(document).ready(function() {
+            // Wait a bit for the Google API scripts to load
+            setTimeout(initGoogleAPI, 1000);
+        });
+    </script>
+
+
+
+
+
+
+</body>
+
+</html>
